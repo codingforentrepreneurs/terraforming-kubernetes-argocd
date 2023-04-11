@@ -46,8 +46,8 @@ metadata:
   namespace: default
 spec:
   secretName: cfe-nginx-tls-secret
-  duration: 2160h # 90 days
-  renewBefore: 360h # 15 days
+  duration: 2160h0m0s # 90 days
+  renewBefore: 360h0m0s # 15 days
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
