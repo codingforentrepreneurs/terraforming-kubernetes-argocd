@@ -33,6 +33,7 @@ spec:
   ports:
     - protocol: TCP
       port: 80
+      name: cfe-nginx-service-port
       targetPort: cfe-nginx-port
 
 
@@ -57,4 +58,4 @@ spec:
             service:
               name: cfe-nginx-service
               port:
-                name: 80
+                name: cfe-nginx-service-port
