@@ -116,11 +116,14 @@ spec:
 
 
 ## 7. Patch ArgoCD ConfigMap and Restart Deployment
+
+Let's review the `argocd-server` manifest:
+
 ```bash
-kubectl patch configmap argocd-cmd-params-cm -n argocd -p '{"data":{"server.insecure":"true"}}'
-kubectl rollout -n argocd restart deployments/argocd-server
+kubectl get deployment argocd-server -n argocd -o yaml
 ```
-If you were to review the deployment manifest, you'd see the following:
+
+In here, we'll find a setting for `ARGOCD_SERVER_INSECURE` like so:
 
 ```yaml
         env:
@@ -131,10 +134,18 @@ If you were to review the deployment manifest, you'd see the following:
               name: argocd-cmd-params-cm
               optional: true
 ```
-We want to change this to being `true` so that we can access the ArgoCD via our domain that has a cert-manager-issued certificate. If you skip this section, our ingress will not work and run continuous redirects to itself.
+The value for this should be set to `true` so that ArgoCD is not redirecting to itself continously but instead letting the newly formed ingress work correctly.
 
 
-## 8. Get the ArgoCD Admin User Password:
+```bash
+kubectl patch configmap argocd-cmd-params-cm -n argocd -p '{"data":{"server.insecure":"true"}}'
+```
+Updating a configmap does not always trigger the deployment to restart. Let's do that now:
+```
+kubectl rollout -n argocd restart deployments/argocd-server
+```
+
+## 8. Get the ArgoCD Admin User Password
 
 ```
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
@@ -166,7 +177,7 @@ This tells us that the `timeout.reconciliation` key is declared in the ConfigMap
 kubectl patch configmap argocd-cm -n argocd -p '{"data":{"timeout.reconciliation":"60s"}}'
 ```
 
-Updating a configmap does not always trigger the deployment to restart. Let's do that now:
+As mentioned before, if we update a configmap it does not always trigger the deployment to updated as well. Let's do that now:
 ```
 kubectl rollout -n argocd restart deployments/argocd-repo-server
 ```
