@@ -2,39 +2,39 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cfe-nginx-deployment
+  name: cnx-stage-deployment
 spec:
   replicas: 10
   selector:
     matchLabels:
-      app: cfe-nginx-deployment
+      app: cnx-stage-deployment
   template:
     metadata:
       labels:
-        app: cfe-nginx-deployment
+        app: cnx-stage-deployment
     spec:
       containers:
-        - name: cfe-nginx-container
+        - name: cnx-stage-container
           image: codingforentrepreneurs/cfe-nginx:latest
           imagePullPolicy: Always
           ports:
-            - name: cfe-nginx-port
+            - name: cnx-stage-port
               containerPort: 80
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: cfe-nginx-service
+  name: cnx-stage-service
 spec:
   selector:
-    app: cfe-nginx-deployment
+    app: cnx-stage-deployment
   type: ClusterIP
   ports:
     - protocol: TCP
       port: 80
       name: http-port
-      targetPort: cfe-nginx-port
+      targetPort: cnx-stage-port
 
 
 
@@ -42,24 +42,24 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: cfe-nginx-certificate
+  name: cnx-stage-certificate
   namespace: default
 spec:
-  secretName: cfe-nginx-tls-secret
+  secretName: cnx-stage-tls-secret
   duration: 2160h0m0s # 90 days
   renewBefore: 360h0m0s # 15 days
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
-  commonName: cfe-nginx.terraformingkubernetes.com
+  commonName: cfe-nginx.stage.terraformingkubernetes.com
   dnsNames:
-  - cfe-nginx.terraformingkubernetes.com
+  - cfe-nginx.stage.terraformingkubernetes.com
 
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: cfe-nginx-ingress
+  name: cnx-stage-ingress
   annotations:
     kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
@@ -67,17 +67,17 @@ metadata:
     nginx.ingress.kubernetes.io/ssl-passthrough: "true"
 spec:
   rules:
-   - host: cfe-nginx.terraformingkubernetes.com
+   - host: cfe-nginx.stage.terraformingkubernetes.com
      http:
         paths:
         - path: /
           pathType: Prefix
           backend:
             service:
-              name: cfe-nginx-service
+              name: cnx-stage-service
               port:
                 name: http-port
   tls:
     - hosts:
-      - cfe-nginx.terraformingkubernetes.com
-      secretName: cfe-nginx-tls-secret
+      - cfe-nginx.stage.terraformingkubernetes.com
+      secretName: cnx-stage-tls-secret
