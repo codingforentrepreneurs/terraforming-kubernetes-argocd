@@ -115,7 +115,7 @@ spec:
 ```
 
 
-## 5. Patch ArgoCD ConfigMap and Restart Deployment
+## 7. Patch ArgoCD ConfigMap and Restart Deployment
 ```bash
 kubectl patch configmap argocd-cmd-params-cm -n argocd -p '{"data":{"server.insecure":"true"}}'
 kubectl rollout -n argocd restart deployments/argocd-server
@@ -134,7 +134,7 @@ If you were to review the deployment manifest, you'd see the following:
 We want to change this to being `true` so that we can access the ArgoCD via our domain that has a cert-manager-issued certificate. If you skip this section, our ingress will not work and run continuous redirects to itself.
 
 
-## 6. Get the ArgoCD Admin User Password:
+## 8. Get the ArgoCD Admin User Password:
 
 ```
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
