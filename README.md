@@ -140,3 +140,33 @@ We want to change this to being `true` so that we can access the ArgoCD via our 
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
 
+
+## 9. Change Git Polling Time
+
+The `argocd-repo-server`, is responsible for polling git repos. We can change the timeout from the default of 3 minutes (`3m`) to 60 seconds (`60s`) or 10 days (`10d`). We get to pick how quickly this polling should happen.
+
+```bash
+kubectl get deployment argocd-repo-server -n argocd -o yaml
+```
+
+In the manifest, you'll see the following:
+
+```yaml
+        env:
+        - name: ARGOCD_RECONCILIATION_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              key: timeout.reconciliation
+              name: argocd-cm
+              optional: true
+```
+
+This tells us that the `timeout.reconciliation` key is declared in the ConfigMap (because of `configMapKeyRef`), named `argocd-cm`. With this in mind, let's update this default setting:
+```bash
+kubectl patch configmap argocd-cm -n argocd -p '{"data":{"timeout.reconciliation":"60s"}}'
+```
+
+Updating a configmap does not always trigger the deployment to restart. Let's do that now:
+```
+kubectl rollout -n argocd restart deployments/argocd-repo-server
+```
