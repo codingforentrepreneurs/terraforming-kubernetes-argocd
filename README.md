@@ -141,13 +141,13 @@ The value for this should be set to `true` so that ArgoCD is not redirecting to 
 kubectl patch configmap argocd-cmd-params-cm -n argocd -p '{"data":{"server.insecure":"true"}}'
 ```
 Updating a configmap does not always trigger the deployment to restart. Let's do that now:
-```
+```bash
 kubectl rollout -n argocd restart deployments/argocd-server
 ```
 
 ## 8. Get the ArgoCD Admin User Password
 
-```
+```bash
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
 
@@ -178,6 +178,6 @@ kubectl patch configmap argocd-cm -n argocd -p '{"data":{"timeout.reconciliation
 ```
 
 As mentioned before, if we update a configmap it does not always trigger the deployment to updated as well. Let's do that now:
-```
+```bash
 kubectl rollout -n argocd restart deployments/argocd-repo-server
 ```
