@@ -1,0 +1,88 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iac-python-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: iac-python-deployment
+  template:
+    metadata:
+      labels:
+        app: iac-python-deployment
+    spec:
+      containers:
+        - name: iac-python-container
+          image: codingforentrepreneurs/iac-python:latest
+          imagePullPolicy: Always
+          env:
+             - name: PORT
+               value: "8000"
+             - name: ENV_MESSAGE
+               value: "Hello World from ArgoCD!"
+          ports:
+            - name: iac-python-port
+              containerPort: 8000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iac-python-service
+spec:
+  selector:
+    app: iac-python-deployment
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 80
+      name: http-port
+      targetPort: iac-python-port
+
+
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: iac-python-cert
+  namespace: default
+spec:
+  secretName: iac-python-tls
+  duration: 2160h0m0s # 90 days
+  renewBefore: 360h0m0s # 15 days
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: iac-python.tko.terraformingkubernetes.com
+  dnsNames:
+  - iac-python.tko.terraformingkubernetes.com
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: iac-python-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "false"
+spec:
+  rules:
+   - host: iac-python.tko.terraformingkubernetes.com
+     http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: iac-python-service
+              port:
+                name: http-port
+  tls:
+    - hosts:
+      - iac-python.tko.terraformingkubernetes.com
+      secretName: iac-python-tls
